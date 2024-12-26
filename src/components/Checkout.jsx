@@ -23,10 +23,23 @@ export default function Checkout() {
   function handleSubmit(event) {
     event.preventDefault(); //
 
-    // 데이터 추출
+    // 백엔드로 데이터 전송
     const fd = new FormData(event.target);
     // fd.get('fulll-name')
     const customerData = Object.fromEntries(fd.entries());
+
+    fetch("http://localhost:3000/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        order: {
+          items: cartCtx.items, // 주문 상품 정보
+          customer: customerData, // 주문 고객 정보
+        },
+      }),
+    });
   }
 
   return (
@@ -34,7 +47,7 @@ export default function Checkout() {
       <form onSubmit={handleSubmit}>
         <h2>Checkout</h2>
         <p>Totla Amount: {currencyFormatter.format(cartTotal)}</p>
-        <Input label="Full Name" type="text" id="full-name" />
+        <Input label="Full Name" type="text" id="name" />
         <Input label="E-Mail Address" type="email" id="email" />
         <Input label="Street" type="text" id="street" />
         <div className="control-now">

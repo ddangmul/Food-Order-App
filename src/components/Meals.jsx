@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 
+import MealItem from "./MealItem";
+
 export default function Meals() {
   const [loadedMeals, setLoadedMeals] = useState([]); // 초기에는 빈배열로 UI 렌더링 후, fetch되어 상태값에 데이터가 들어오면 UI를 업데이트
 
@@ -22,7 +24,7 @@ export default function Meals() {
   return (
     <ul id="meals">
       {loadedMeals.map((meal) => (
-        <li key={meal.id}>{meal.name}</li>
+        <MealItem key={meal.id} meal={meal} />
       ))}
     </ul>
   );

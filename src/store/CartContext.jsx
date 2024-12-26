@@ -4,12 +4,11 @@ const CartContext = createContext({
   // 자동완성 및 컨텍스트 객체 완성 용도 (컨텍스트 구조)
   items: [],
   addItem: (item) => {},
-  removeItem: (item) => {},
+  removeItem: (id) => {},
 });
 
 function cartReducer(state, action) {
   if (action.type === "ADD_ITEM") {
-    // 메뉴 추가 상태 업데이트
     // state.items.push(action.item) // 항목 수 말고 항목의 양 수를 늘ㄹ기
     const existingCartItemIndex = state.items.findIndex(
       (item) => item.id === action.item.id
@@ -33,14 +32,13 @@ function cartReducer(state, action) {
   }
 
   if (action.type === "REMOVE_ITEM") {
-    // 메뉴 삭제 상태 업데이트
     const existingCartItemIndex = state.items.findIndex(
-      (item) => item.id === action.item.id
+      (item) => item.id === action.id
     );
 
     const existingCartItem = state.items[existingCartItemIndex];
 
-    const updatedItems = [...state.item];
+    const updatedItems = [...state.items];
 
     if (existingCartItem.quantity === 1) {
       // 항목을 삭제

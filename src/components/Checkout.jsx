@@ -6,10 +6,29 @@ import { currencyFormatter } from "../util/formatting.js";
 import Input from "./UI/Input.jsx";
 import UserProgressContext from "../store/UserProgressContext.jsx";
 import Button from "./UI/Button.jsx";
+import useHttp from "../hooks/useHttp.js";
+import Error from "./Error.jsx";
+
+const requestConfig = {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+};
 
 export default function Checkout() {
   const cartCtx = useContext(CartContext);
   const userProgressCtx = useContext(UserProgressContext);
+
+  const {
+    data,
+    isLoading: isSending,
+    error,
+    sendRequest,
+    clearData,
+  } = useHttp("http://localhost:3000/orders", requestConfig);
+
+  console.log(error);
 
   const cartTotal = cartCtx.items.reduce(
     (totalPrice, item) => totalPrice + item.quantity * item.price,
@@ -20,6 +39,13 @@ export default function Checkout() {
     userProgressCtx.hideCheckout();
   }
 
+  // 장바구니 비우기
+  function handleFinish() {
+    userProgressCtx.hideCheckout();
+    cartCtx.clearCart();
+    clearData();
+  }
+
   function handleSubmit(event) {
     event.preventDefault(); //
 
@@ -28,18 +54,42 @@ export default function Checkout() {
     // fd.get('fulll-name')
     const customerData = Object.fromEntries(fd.entries());
 
-    fetch("http://localhost:3000/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    sendRequest(
+      JSON.stringify({
         order: {
           items: cartCtx.items, // 주문 상품 정보
           customer: customerData, // 주문 고객 정보
         },
-      }),
-    });
+      })
+    );
+  }
+
+  let actions = (
+    <>
+      <Button type="button" textOnly onClick={handleClose}>
+        Close
+      </Button>
+      <Button>Submit Order</Button>
+    </>
+  );
+
+  if (isSending) {
+    actions = <span>Sening order data...</span>;
+  }
+
+  if (data && !error) {
+    return (
+      <Modal
+        open={userProgressCtx.progress === "checkout"}
+        onClose={handleFinish}
+      >
+        <h2>Success!</h2>
+        <p>주문서가 정상적으로 제출되었습니다.</p>
+        <p className="modal-actions">
+          <Button onClick={handleFinish}>Okay</Button>
+        </p>
+      </Modal>
+    );
   }
 
   return (
@@ -54,13 +104,8 @@ export default function Checkout() {
           <Input label="Postal Code" type="text" id="postal-code" />
           <Input label="City" type="text" id="city" />
         </div>
-
-        <p className="modal-actions">
-          <Button type="button" textOnly onClick={handleClose}>
-            Close
-          </Button>
-          <Button>Submit Order</Button>
-        </p>
+        {error && <Error title="Failed to submit order" message={error} />}
+        <p className="modal-actions">{actions}</p>
       </form>
     </Modal>
   );
